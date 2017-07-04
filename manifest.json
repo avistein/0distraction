@@ -1,0 +1,16 @@
+{
+  "manifest_version":2,
+  "name":"0Distraction",
+  "version":"1.0",
+
+  "description":"Blocks(destructs) distractions when doing work!",
+
+  "background":{
+    "scripts":["background-script.js"]
+  },
+  "options_ui": {
+  "page": "options/options.html",
+  "browser_style": true
+  },
+  "permissions":["<all_urls>","tabs","webRequest","webRequestBlocking","storage"]
+}
