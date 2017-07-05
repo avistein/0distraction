@@ -13,7 +13,9 @@ function storeWebsites(){
   });
 }
 function updateTextArea(restoredSettings) {
+    if(restoredSettings.keywords)
   keywordsTextArea.value = restoredSettings.keywords.join("\n");
+    if(restoredSettings.websites)
   websitesTextArea.value = restoredSettings.websites.join("\n");
 }
 
