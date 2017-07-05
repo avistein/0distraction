@@ -1,6 +1,6 @@
 var urlList=["https://*.facebook.com/*"];
 var keywordsList = ["code","programming"];
-var finalKeywordsList=[];
+var finalKeywordsList=keywordsList.slice(0);
 var finalUrlList = urlList.slice(0);
 var keywordsForPattern;
 var pattern;
@@ -11,19 +11,21 @@ function getFromStorage(){
   browser.storage.local.get().then(store,onError);
 }
 function store(store){
+  let tempKeywordsList= [];
   if(store.keywords){
-    finalKeywordsList = keywordsList.concat(store.keywords);
-    finalKeywordsList.forEach(function(item,index){
-      if(item=="")
-        finalKeywordsList.splice(index,1);
+    store.keywords.forEach(function(item){
+      if(item!="")
+        tempKeywordsList.push(item);
     });
+    finalKeywordsList =  keywordsList.concat(tempKeywordsList);
   }
   if(store.websites){
-    finalUrlList = urlList.concat(store.websites);
-    finalUrlList.forEach(function(item,index){
-      if(item=="")
-        finalUrlList.splice(index,1);
+    let tempUrlList = [];
+    store.websites.forEach(function(item,index){
+      if(item!="")
+        tempUrlList.push(item);
     });
+    finalUrlList = urlList.concat(tempUrlList);
   }
 }
 function onError(e){
@@ -31,10 +33,8 @@ function onError(e){
 }
 function listTabs(tabId,changeInfo){
   var index;
-  console.log(finalKeywordsList);
   keywordsForPattern = finalKeywordsList.join("|");
   pattern = new RegExp(keywordsForPattern,"i");
-  console.log(keywordsForPattern);
   for(index=0;index<tabUrlList.length;index++){
     if(tabUrlList[index].tabId==tabId){
       break;
@@ -78,13 +78,15 @@ browser.tabs.onRemoved.addListener(removeTabs);
 browser.storage.onChanged.addListener(getFromStorage);
 browser.webRequest.onBeforeRequest.addListener(
     cancel,
-    {urls:finalUrlList},
+    {urls:["<all_urls>"]},
     ["blocking"]
   );
 function cancel(requestDetails){
-  console.log(finalUrlList);
+  var domain = requestDetails.url;
+  var urlListPattern = new RegExp(finalUrlList.join("|"),"i");
+  console.log(urlListPattern);
   for(var i=0;i<tabUrlList.length;i++){
-    if(tabUrlList[i].val||titleList[i].val)
+    if((tabUrlList[i].val||titleList[i].val)&&domain.match(urlListPattern))
       return {cancel:true};
   }
   return {cancel:false};
