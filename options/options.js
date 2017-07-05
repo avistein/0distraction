@@ -1,17 +1,20 @@
 const keywordsTextArea = document.querySelector('#keywords');
 const websitesTextArea = document.querySelector('#websites');
+/*storing keywords from textArea to local storage*/
 function storeKeywords(){
   var keywords = keywordsTextArea.value.split("\n");
   browser.storage.local.set({
     keywords
   });
 }
+/*storing websites from textArea to local storage*/
 function storeWebsites(){
   var websites = websitesTextArea.value.split("\n");
   browser.storage.local.set({
     websites
   });
 }
+/*populating the textArea when options.html is opened*/
 function updateTextArea(restoredSettings) {
     if(restoredSettings.keywords)
   keywordsTextArea.value = restoredSettings.keywords.join("\n");

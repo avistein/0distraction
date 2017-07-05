@@ -1,15 +1,23 @@
-var urlList=["https://*.facebook.com/*"];
-var keywordsList = ["code","programming"];
-var finalKeywordsList=keywordsList.slice(0);
-var finalUrlList = urlList.slice(0);
+var defaultUrlList=["https://*.facebook.com/*"];
+var defaultKeywordsList = ["code","programming"];
+var finalKeywordsList=defaultKeywordsList.slice(0);
+var finalUrlList = defaultUrlList.slice(0);
 var keywordsForPattern;
 var pattern;
 var tabUrlList = [];
 var titleList = [];
+
+/*fetching keywords and urls from local storage for the first time*/
 getFromStorage();
+
+/*fetching keywords and urls from local storage whenever the local storage changes*/
 function getFromStorage(){
   browser.storage.local.get().then(store,onError);
 }
+
+/**success callback function for the get().then() promise
+  * @store holds the object used in set method
+*/
 function store(store){
   let tempKeywordsList= [];
   if(store.keywords){
@@ -17,7 +25,7 @@ function store(store){
       if(item!="")
         tempKeywordsList.push(item);
     });
-    finalKeywordsList =  keywordsList.concat(tempKeywordsList);
+    finalKeywordsList =  defaultKeywordsList.concat(tempKeywordsList);
   }
   if(store.websites){
     let tempUrlList = [];
@@ -25,13 +33,21 @@ function store(store){
       if(item!="")
         tempUrlList.push(item);
     });
-    finalUrlList = urlList.concat(tempUrlList);
+    finalUrlList = defaultUrlList.concat(tempUrlList);
   }
 }
+
+/*error callback for get().then() promise*/
 function onError(e){
   console.log("Error retrieving keywords from local storage");
 }
-function listTabs(tabId,changeInfo){
+
+/**callback for the onUpdated event listener-fires when the tab is changed
+  * @tabId holds the id of the tab which is changed
+  * @changeInfo holds other info like url,title etc of the changed tabId
+  * @pattern creating a pattern with all the keywords to match with title or url
+*/
+function changeTabs(tabId,changeInfo){
   var index;
   keywordsForPattern = finalKeywordsList.join("|");
   pattern = new RegExp(keywordsForPattern,"i");
@@ -42,26 +58,36 @@ function listTabs(tabId,changeInfo){
   }
     if(changeInfo.url){
       if(changeInfo.url.match(pattern)){
-        tabUrlList[index].val = 1;
+        tabUrlList[index].val = true;
       }
       else {
-        tabUrlList[index].val = 0;
+        tabUrlList[index].val = false;
       }
     }
     if(changeInfo.title){
       if(changeInfo.title.match(pattern)){
-        titleList[index].val = 1;
+        titleList[index].val = true;
       }
       else{
-        titleList[index].val = 0;
+        titleList[index].val = false;
       }
     }
 }
+
+/**callback for onCreated event listener-fires when new tab is created
+  * @tab contains info about the newly created tab
+  *@val check if the tab contains keyword values-if yes then true
+*/
 function addTabs(tab){
-  var obj = {tabId:tab.id,val:0};
+  var obj = {tabId:tab.id,val:true};
   tabUrlList.push(obj);
   titleList.push(obj);
 }
+
+/**callback for onRemoved event listener-fires when tab is destroyed
+  * @tabId id of the removed tab
+  * @index find the removed tab id in the listener
+*/
 function removeTabs(tabId){
   var index;
   for(index=0;index<tabUrlList.length;index++){
@@ -72,8 +98,25 @@ function removeTabs(tabId){
   tabUrlList.splice(index,1);
   titleList.splice(index,1);
 }
+
+/**callback for onBeforeRequest-fires when a request is about to be made
+  * @requestDetails conatins details about the request
+  * @domain url at which the request is made to
+  * @urlListPattern pattern of all urls which is to be blocked if there
+    is a match with the @domain
+*/
+function cancel(requestDetails){
+  var domain = requestDetails.url;
+  var urlListPattern = new RegExp(finalUrlList.join("|"),"i");
+  for(var i=0;i<tabUrlList.length;i++){
+    if((tabUrlList[i].val||titleList[i].val)&&domain.match(urlListPattern))
+      return {cancel:true};
+  }
+  return {cancel:false};
+}
+
 browser.tabs.onCreated.addListener(addTabs);
-browser.tabs.onUpdated.addListener(listTabs);
+browser.tabs.onUpdated.addListener(changeTabs);
 browser.tabs.onRemoved.addListener(removeTabs);
 browser.storage.onChanged.addListener(getFromStorage);
 browser.webRequest.onBeforeRequest.addListener(
@@ -81,13 +124,3 @@ browser.webRequest.onBeforeRequest.addListener(
     {urls:["<all_urls>"]},
     ["blocking"]
   );
-function cancel(requestDetails){
-  var domain = requestDetails.url;
-  var urlListPattern = new RegExp(finalUrlList.join("|"),"i");
-  console.log(urlListPattern);
-  for(var i=0;i<tabUrlList.length;i++){
-    if((tabUrlList[i].val||titleList[i].val)&&domain.match(urlListPattern))
-      return {cancel:true};
-  }
-  return {cancel:false};
-}
