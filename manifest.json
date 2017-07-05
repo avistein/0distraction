@@ -3,7 +3,7 @@
   "name":"0Distraction",
   "version":"1.0",
 
-  "description":"Blocks(destructs) distractions when doing work!",
+  "description":"Avoid distractions while doing your online work!",
 
   "background":{
     "scripts":["background-script.js"]
