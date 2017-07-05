@@ -9,7 +9,7 @@ Many a times you end up opening any social networking websites or any entertainm
 
 ## Installing 0distraction
 
-Follow the [mdn webextension  github page](https://github.com/mdn/webextensions-examples#installing-an-example) to install 0distraction.
+Clone or download the repo and follow the [mdn webextension  github page](https://github.com/mdn/webextensions-examples#installing-an-example) to install 0distraction.
 
 ## Using 0distraction
 
