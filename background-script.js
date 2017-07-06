@@ -1,6 +1,7 @@
 var defaultUrlList=["https://*.facebook.com/*"];
 var defaultKeywordsList = ["code","programming","mdn","developers","coding","tutorials","stackoverflow",
-"github","xda","java","python","javascript","ruby","django","linux","nodejs","reactjs","sql","wikipedia"];
+"github","xda","java","python","javascript","ruby","django","linux","nodejs","reactjs","sql","wikipedia",
+"onenote"];
 var finalKeywordsList=defaultKeywordsList.slice(0);
 var finalUrlList = defaultUrlList.slice(0);
 var keywordsForPattern;
