@@ -1,9 +1,7 @@
-var defaultUrlList=["https://*.facebook.com/*"];
-var defaultKeywordsList = ["code","programming","mdn","developers","coding","tutorials","stackoverflow",
+var urlList=["https://www.facebook.com"];
+var keywordsList = ["code","programming","mdn","developers","coding","tutorials","stackoverflow",
 "github","xda","java","python","javascript","ruby","django","linux","nodejs","reactjs","sql","wikipedia",
-"onenote"];
-var finalKeywordsList=defaultKeywordsList.slice(0);
-var finalUrlList = defaultUrlList.slice(0);
+"onenote","gate","cse"];
 var keywordsForPattern;
 var pattern;
 var tabUrlList = [];
@@ -27,7 +25,7 @@ function store(store){
       if(item!="")
         tempKeywordsList.push(item);
     });
-    finalKeywordsList =  defaultKeywordsList.concat(tempKeywordsList);
+    keywordsList =  keywordsList.concat(tempKeywordsList);
   }
   if(store.websites){
     let tempUrlList = [];
@@ -35,7 +33,7 @@ function store(store){
       if(item!="")
         tempUrlList.push(item);
     });
-    finalUrlList = defaultUrlList.concat(tempUrlList);
+    urlList = urlList.concat(tempUrlList);
   }
 }
 
@@ -51,7 +49,7 @@ function onError(e){
 */
 function changeTabs(tabId,changeInfo){
   var index;
-  keywordsForPattern = finalKeywordsList.join("|");
+  keywordsForPattern = keywordsList.join("|");
   pattern = new RegExp(keywordsForPattern,"i");
   for(index=0;index<tabUrlList.length;index++){
     if(tabUrlList[index].tabId==tabId){
@@ -61,6 +59,7 @@ function changeTabs(tabId,changeInfo){
     if(changeInfo.url){
       if(changeInfo.url.match(pattern)){
         tabUrlList[index].val = true;
+        console.log("fired1");
       }
       else {
         tabUrlList[index].val = false;
@@ -69,6 +68,7 @@ function changeTabs(tabId,changeInfo){
     if(changeInfo.title){
       if(changeInfo.title.match(pattern)){
         titleList[index].val = true;
+        console.log("fired2");
       }
       else{
         titleList[index].val = false;
@@ -77,11 +77,12 @@ function changeTabs(tabId,changeInfo){
 }
 
 /**callback for onCreated event listener-fires when new tab is created
-  * @tab contains info about the newly created tab
+  *@tab contains info about the newly created tab
   *@val check if the tab contains keyword values-if yes then true
 */
 function addTabs(tab){
-  var obj = {tabId:tab.id,val:true};
+  console.log("fired0");
+  var obj = {tabId:tab.id,val:false};
   tabUrlList.push(obj);
   titleList.push(obj);
 }
@@ -91,6 +92,7 @@ function addTabs(tab){
   * @index find the removed tab id in the listener
 */
 function removeTabs(tabId){
+  console.log("fired3");
   var index;
   for(index=0;index<tabUrlList.length;index++){
     if(tabUrlList[index].tabId==tabId){
@@ -107,12 +109,15 @@ function removeTabs(tabId){
   * @urlListPattern pattern of all urls which is to be blocked if there
     is a match with the @domain
 */
-function cancel(requestDetails){
+function cancelRequest(requestDetails){
   var domain = requestDetails.url;
-  var urlListPattern = new RegExp(finalUrlList.join("|"),"i");
+  var urlListPattern = new RegExp(urlList.join("|"),"i");
   for(var i=0;i<tabUrlList.length;i++){
-    if((tabUrlList[i].val||titleList[i].val)&&domain.match(urlListPattern))
+    if((tabUrlList[i].val||titleList[i].val)&&domain.match(urlListPattern)){
+      console.log("Cancelling : ", requestDetails.url);
+      //console.log("")
       return {cancel:true};
+    }
   }
   return {cancel:false};
 }
@@ -122,7 +127,7 @@ browser.tabs.onUpdated.addListener(changeTabs);
 browser.tabs.onRemoved.addListener(removeTabs);
 browser.storage.onChanged.addListener(getFromStorage);
 browser.webRequest.onBeforeRequest.addListener(
-    cancel,
+    cancelRequest,
     {urls:["<all_urls>"]},
     ["blocking"]
   );
